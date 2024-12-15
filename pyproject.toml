@@ -1,0 +1,46 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "datasetplus"
+version = "0.0.1"
+description = "Enhanced dataset management utilities for Hugging Face Hub"
+authors = ["Kadir Nar <kadir.nar@hotmail.com>"]
+maintainers = ["Kadir Nar <kadir.nar@hotmail.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/kadirnar/datasetplus"
+repository = "https://github.com/kadirnar/datasetplus"
+documentation = "https://github.com/kadirnar/datasetplus"
+keywords = ["huggingface", "dataset", "audio", "machine learning"]
+packages = [
+    { include = "datasetplus" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8.1"
+huggingface-hub = ">=0.19.0"
+tqdm = ">=4.65.0"
+polars = ">=0.20.1"
+colorlog = ">=6.8.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+black = ">=23.0.0"
+isort = ">=5.0.0"
+flake8 = ">=6.0.0"
+mypy = ">=1.0.0"
