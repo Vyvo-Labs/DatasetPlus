@@ -1,39 +1,66 @@
+"""Logging configuration for the datasetplus package.
+
+This module provides functions to set up and configure logging with colored output
+and consistent formatting across the package.
+"""
+
 import logging
+import os
+from typing import Optional
+
 import colorlog
 
-def setup_logger(name: str = "datasetplus") -> logging.Logger:
-    """Set up a colored logger instance.
-    
+
+def setup_logger(
+    name: str = "datasetplus",
+    level: int = logging.INFO,
+    log_file: Optional[str] = None,
+) -> logging.Logger:
+    """Set up a logger with colored output.
+
     Args:
-        name (str, optional): Name of the logger. Defaults to "datasetplus".
-        
+        name: Name of the logger
+        level: Logging level
+        log_file: Optional path to a log file
+
     Returns:
-        logging.Logger: Configured logger instance with colored output.
+        logging.Logger: Configured logger instance
     """
-    logger = colorlog.getLogger(name)
-    
-    if logger.handlers:
-        return logger
-        
-    # Create console handler with formatting
-    console_handler = colorlog.StreamHandler()
-    console_handler.setFormatter(
-        colorlog.ColoredFormatter(
-            "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(name)s%(reset)s: %(message)s",
-            log_colors={
-                'DEBUG': 'cyan',
-                'INFO': 'green',
-                'WARNING': 'yellow',
-                'ERROR': 'red',
-                'CRITICAL': 'red,bg_white',
-            }
-        )
+    formatter = colorlog.ColoredFormatter(
+        "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+        log_colors={
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red,bg_white",
+        },
     )
-    
-    logger.addHandler(console_handler)
-    logger.setLevel(logging.INFO)
-    
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    if not logger.handlers:
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+        if log_file:
+            os.makedirs(os.path.dirname(log_file), exist_ok=True)
+            file_handler = logging.FileHandler(log_file)
+            file_handler.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
+            logger.addHandler(file_handler)
+
     return logger
 
-# Create default logger instance
-logger = setup_logger()
+
+def get_logger(name: str = "datasetplus") -> logging.Logger:
+    """Get the logger instance.
+
+    Args:
+        name: Name of the logger
+
+    Returns:
+        logging.Logger: Logger instance
+    """
+    return logging.getLogger(name)

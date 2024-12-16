@@ -1,47 +1,54 @@
-from datasetplus import HFDatasetManager, AudioProcessor
-from datasetplus.utils import logger
+"""Example script for processing audio data from a Hugging Face dataset."""
+
 from pathlib import Path
+from typing import Optional
+
+from datasetplus import AudioProcessor, HFDatasetManager
+from datasetplus.utils import get_logger
+
+logger = get_logger(__name__)
+
 
 def process_audio_data(
     dataset_name: str = "fixie-ai/llama-questions",
     output_dir: str = "output/llama_questions",
-    limit: int = 5
+    limit: Optional[int] = 5,
 ) -> None:
-    """Process audio data from a Hugging Face dataset."""
+    """Process audio data from a Hugging Face dataset.
+
+    Args:
+        dataset_name: Name of the Hugging Face dataset.
+        output_dir: Directory to store the output.
+        limit: Maximum number of files to process. Defaults to 5.
+    """
     try:
         # Initialize and download dataset
         dataset = HFDatasetManager()
-        output_path = Path(output_dir)
-        
-        logger.info(f"Processing dataset: {dataset_name}")
         dataset.download(
             repo_id=dataset_name,
-            local_dir=output_path,
+            local_dir=output_dir,
             repo_type="dataset",
-            ignore_patterns=[".gitignore", "README.md", ".gitattributes"]
         )
-        
+
         # Process audio data
-        parquet_files = list(output_path.glob("**/*.parquet"))
-        if not parquet_files:
-            logger.error("No parquet files found in the dataset")
-            return
-        
-        processor = AudioProcessor(parquet_files[0])
+        parquet_path = Path(output_dir) / "train.parquet"
+        processor = AudioProcessor(parquet_path)
+
+        # Get metadata
         metadata = processor.get_metadata()
-        logger.info(f"Processing {metadata['total_files']} audio files")
-        
+        logger.info(f"Dataset metadata: {metadata}")
+
         # Extract audio files
-        audio_dir = output_path / "audio_files"
-        processor.extract_audio_files(audio_dir, limit=limit)
-            
-    except Exception as e:
-        logger.error(f"Error processing audio data: {e}")
-        raise
+        audio_files = processor.extract_audio_files(
+            output_dir=str(Path(output_dir) / "audio_files"),
+            limit=limit,
+        )
+        logger.info(f"Extracted {len(audio_files)} audio files")
+
+    except Exception as err:
+        logger.error(f"Error processing audio data: {err}")
+        raise RuntimeError("Failed to process audio data") from err
+
 
 if __name__ == "__main__":
-    process_audio_data(
-        dataset_name="fixie-ai/llama-questions",
-        output_dir="output/llama_questions",
-        limit=None  # Set to None to extract all audio files
-    )
+    process_audio_data()

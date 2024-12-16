@@ -1,6 +1,6 @@
 """Enhanced dataset management utilities for Hugging Face Hub."""
 
-from .core import HFDatasetManager
 from .audio import AudioProcessor
+from .core import HFDatasetManager
 
 __all__ = ["HFDatasetManager", "AudioProcessor"]

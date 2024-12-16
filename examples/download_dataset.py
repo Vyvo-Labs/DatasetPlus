@@ -1,13 +1,17 @@
-from datasetplus import DatasetPlus
+"""Example script for downloading a dataset from Hugging Face Hub."""
 
-# Initialize DatasetPlus (if you have a token, pass it here)
-dataset = DatasetPlus()
+from datasetplus import HFDatasetManager
 
-# Download the dataset to a local directory
-dataset.download(
-    repo_id="fixie-ai/llama-questions",
-    local_dir="./output/llama_questions",
-    repo_type="dataset",  # Explicitly specify that we're downloading a dataset
-    ignore_patterns=[".gitignore", "README.md", ".gitattributes"]  # Ignore specific files and folders
-)
 
+def main() -> None:
+    """Download a dataset from Hugging Face Hub."""
+    dataset = HFDatasetManager()
+    dataset.download(
+        repo_id="fixie-ai/llama-questions",
+        local_dir="output/llama_questions",
+        repo_type="dataset",
+    )
+
+
+if __name__ == "__main__":
+    main()

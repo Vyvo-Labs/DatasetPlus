@@ -1,128 +1,121 @@
-import polars as pl
+"""Audio processing utilities for dataset management.
+
+This module provides the AudioProcessor class for handling audio data stored in
+Parquet files, including metadata extraction and file processing.
+"""
+
 from pathlib import Path
-from typing import Optional, List, Union
-from .utils import logger
+from typing import Optional, Union
+
+import polars as pl
+from tqdm import tqdm
+
+from .utils import get_logger
+
+logger = get_logger(__name__)
+
 
 class AudioProcessor:
-    """Process audio data from parquet files.
-    
-    This class provides functionality to handle audio data stored in parquet files,
-    including extraction of audio files and metadata retrieval.
-    
-    Attributes:
-        parquet_path (Path): Path to the parquet file containing audio data
-        
-    Example:
-        >>> processor = AudioProcessor("path/to/data.parquet")
-        >>> metadata = processor.get_metadata()
-        >>> audio_files = processor.extract_audio_files("output_dir", limit=5)
-    """
-    
-    def __init__(self, parquet_path: Union[str, Path]):
-        """Initialize AudioProcessor with a parquet file path.
-        
+    """A class for processing audio data from Parquet files."""
+
+    def __init__(self, parquet_path: Union[str, Path]) -> None:
+        """Initialize AudioProcessor.
+
         Args:
-            parquet_path (Union[str, Path]): Path to the parquet file containing audio data.
-                The parquet file should have a column containing audio data in bytes format.
-        
-        Raises:
-            FileNotFoundError: If the parquet file does not exist.
-            ValueError: If the parquet file is invalid or doesn't contain audio data.
+            parquet_path: Path to the parquet file containing audio data
         """
         self.parquet_path = Path(parquet_path)
-        if not self.parquet_path.exists():
-            raise FileNotFoundError(f"Parquet file not found: {self.parquet_path}")
-        self._df = None
-    
+        self._df: Optional[pl.DataFrame] = None
+
     @property
     def df(self) -> pl.DataFrame:
         """Lazy load the parquet file.
-        
+
         Returns:
             pl.DataFrame: Polars DataFrame containing the audio data.
-            
+
         Raises:
             ValueError: If the parquet file cannot be read or is invalid.
         """
         if self._df is None:
-            logger.info(f"Loading parquet file: {self.parquet_path}")
             try:
+                logger.info(f"Loading parquet file: {self.parquet_path}")
                 self._df = pl.read_parquet(self.parquet_path)
-            except Exception as e:
-                logger.error(f"Failed to read parquet file: {e}")
-                raise ValueError(f"Failed to read parquet file: {e}")
+            except Exception as err:
+                logger.error(f"Failed to read parquet file: {err}")
+                raise ValueError("Failed to read parquet file") from err
         return self._df
-    
-    def extract_audio_files(self, output_dir: Union[str, Path], limit: Optional[int] = None) -> List[Path]:
+
+    def extract_audio_files(
+        self, output_dir: Union[str, Path], limit: Optional[int] = None
+    ) -> list[Path]:
         """Extract audio files from the parquet file.
-        
+
         Args:
-            output_dir (Union[str, Path]): Directory to save the audio files.
-                Will be created if it doesn't exist.
-            limit (Optional[int], optional): Maximum number of files to extract.
-                If None, extracts all files. Defaults to None.
-            
+            output_dir: Directory to save the extracted audio files
+            limit: Maximum number of files to extract (None for all)
+
         Returns:
-            List[Path]: List of paths to the extracted audio files.
-            
+            list[Path]: List of paths to the extracted audio files
+
         Raises:
-            ValueError: If the audio data cannot be extracted or saved.
+            ValueError: If audio files cannot be extracted
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
-        saved_files = []
-        total_files = min(len(self.df), limit) if limit else len(self.df)
-        
-        logger.info(f"Extracting {total_files} audio files to {output_dir}")
-        
+
         try:
-            for i, row in enumerate(self.df.iter_rows()):
-                if limit and i >= limit:
-                    break
-                    
-                # Get the audio data from the struct column
-                audio_struct = row[2]  # Index 2 is the audio column
-                audio_bytes = audio_struct['bytes']
-                
-                # Save the audio file
-                audio_path = output_dir / f"audio_{i}.wav"
+            df = self.df
+            if limit is not None:
+                df = df.head(limit)
+
+            audio_files = []
+            total_files = len(df)
+            progress = tqdm(
+                df.iter_rows(),
+                total=total_files,
+                desc="Extracting audio files",
+            )
+
+            for row in progress:
+                audio_path = output_dir / f"{row[0]}.wav"
                 with open(audio_path, "wb") as f:
-                    f.write(audio_bytes)
-                saved_files.append(audio_path)
-                
-                if (i + 1) % 10 == 0:
-                    logger.debug(f"Extracted {i + 1}/{total_files} files")
-            
-            logger.info(f"Successfully extracted {len(saved_files)} audio files")
-            return saved_files
-            
-        except Exception as e:
-            logger.error(f"Failed to extract audio files: {e}")
-            raise ValueError(f"Failed to extract audio files: {e}")
-    
-    def get_metadata(self) -> dict:
+                    f.write(row[1])
+                audio_files.append(audio_path)
+                logger.debug(f"Extracted: {audio_path}")
+
+            logger.info(f"Extracted {len(audio_files)} audio files")
+            return audio_files
+
+        except Exception as err:
+            logger.error(f"Failed to extract audio files: {err}")
+            raise ValueError("Failed to extract audio files") from err
+
+    def get_metadata(self) -> dict[str, Union[int, list[str], pl.DataFrame]]:
         """Get basic metadata about the dataset.
-        
+
         Returns:
-            dict: Dictionary containing metadata with the following keys:
+            Dict containing metadata with the following keys:
                 - total_files (int): Total number of files in the dataset
-                - schema (pl.Schema): Schema of the parquet file
+                - file_size_mb (float): Total size in MB
                 - columns (List[str]): List of column names
                 - sample (pl.DataFrame): Sample of the first few rows
-                
+
         Raises:
             ValueError: If metadata cannot be retrieved.
         """
         try:
+            df = self.df
+            total_size = sum(len(row[1]) for row in df.iter_rows())
             metadata = {
-                "total_files": len(self.df),
-                "schema": self.df.schema,
-                "columns": self.df.columns,
-                "sample": self.df.head()
+                "total_files": len(df),
+                "file_size_mb": total_size / (1024 * 1024),
+                "columns": df.columns,
+                "sample": df.head(5),
             }
-            logger.debug("Retrieved dataset metadata successfully")
+            logger.debug(f"Retrieved metadata: {metadata}")
             return metadata
-        except Exception as e:
-            logger.error(f"Failed to get metadata: {e}")
-            raise ValueError(f"Failed to get metadata: {e}")
+
+        except Exception as err:
+            logger.error(f"Failed to get metadata: {err}")
+            raise ValueError("Failed to get metadata") from err
