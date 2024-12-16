@@ -1,40 +1,41 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+[project]
 name = "datasetplus"
 version = "0.1.0"
-description = "Enhanced dataset management utilities for Hugging Face Hub"
-authors = ["Kadir Nar <kadir.nar@gmail.com>"]
-maintainers = ["Kadir Nar <kadir.nar@gmail.com>"]
+description = "Enhanced dataset management utilities for the Hugging Face Hub"
+authors = [{name = "Kadir Nar", email = "kadir.nar@hotmail.com"}]
 readme = "README.md"
-license = "MIT"
-homepage = "https://github.com/kadirnar/datasetplus"
-repository = "https://github.com/kadirnar/datasetplus"
-documentation = "https://github.com/kadirnar/datasetplus"
-keywords = ["dataset", "huggingface", "audio", "machine learning"]
-packages = [
-    { include = "datasetplus" }
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "huggingface-hub>=0.19.0",
+    "polars>=0.19.12",
+    "colorlog>=6.7.0",
+    "tqdm>=4.66.1",
 ]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "mypy>=1.7.1",
+    "ruff>=0.1.8",
+    "pre-commit>=3.5.0",
+    "types-requests>=2.31.0.10",
+    "types-setuptools>=69.0.0.0",
+    "types-tqdm>=4.66.0.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/kadirnar/datasetplus"
+Repository = "https://github.com/kadirnar/datasetplus"
+Documentation = "https://github.com/kadirnar/datasetplus"
 
 [tool.ruff]
 line-length = 100
 target-version = "py39"
-
-# Enable Pyflakes `F` and `E`, `W` series
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "T20", "RET", "SIM", "D"]
 ignore = [
     "D203",  # one-blank-line-before-class
@@ -65,16 +66,3 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 ignore_missing_imports = true
-
-[tool.poetry.dependencies]
-python = ">=3.9,<4.0"
-huggingface-hub = ">=0.19.0"
-tqdm = ">=4.65.0"
-polars = ">=0.20.1"
-colorlog = ">=6.7.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
-mypy = "^1.7.1"
-ruff = "^0.1.8"
-pre-commit = "^3.6.0"
