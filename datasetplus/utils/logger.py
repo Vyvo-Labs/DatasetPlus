@@ -1,9 +1,3 @@
-"""Logging configuration for the datasetplus package.
-
-This module provides functions to set up and configure logging with colored output
-and consistent formatting across the package.
-"""
-
 import logging
 import os
 from typing import Optional

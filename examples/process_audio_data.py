@@ -1,5 +1,3 @@
-"""Example script for processing audio data from a Hugging Face dataset."""
-
 from pathlib import Path
 from typing import Optional
 
@@ -10,16 +8,18 @@ logger = get_logger(__name__)
 
 
 def process_audio_data(
-    dataset_name: str = "fixie-ai/llama-questions",
-    output_dir: str = "output/llama_questions",
-    limit: Optional[int] = 5,
+    dataset_name: str = "bookbot/ljspeech_phonemes",
+    output_dir: str = "output/ljspeech_phonemes",
+    columns_to_extract: Optional[list[str]] = None,
+    limit: Optional[int] = None,
 ) -> None:
     """Process audio data from a Hugging Face dataset.
 
     Args:
         dataset_name: Name of the Hugging Face dataset.
         output_dir: Directory to store the output.
-        limit: Maximum number of files to process. Defaults to 5.
+        columns_to_extract: List of column names to extract (besides 'audio').
+        limit: Maximum number of files to process. Defaults to None (all files).
     """
     try:
         # Initialize and download dataset
@@ -31,16 +31,22 @@ def process_audio_data(
         )
 
         # Process audio data
-        parquet_path = Path(output_dir) / "train.parquet"
-        processor = AudioProcessor(parquet_path)
+        data_dir = Path(output_dir) / "data"
+        processor = AudioProcessor(data_dir)
 
-        # Get metadata
+        # Get metadata and print sample data
         metadata = processor.get_metadata()
         logger.info(f"Dataset metadata: {metadata}")
+        
+        # Print column names and first row for debugging
+        df = processor.df
+        logger.info(f"Column names: {df.columns}")
+        logger.info(f"First row: {df.head(1)}")
 
         # Extract audio files
         audio_files = processor.extract_audio_files(
             output_dir=str(Path(output_dir) / "audio_files"),
+            columns_to_extract=columns_to_extract,
             limit=limit,
         )
         logger.info(f"Extracted {len(audio_files)} audio files")
@@ -51,4 +57,9 @@ def process_audio_data(
 
 
 if __name__ == "__main__":
-    process_audio_data()
+    process_audio_data(
+        dataset_name="bookbot/ljspeech_phonemes",
+        output_dir="output/ljspeech_phonemes",
+        columns_to_extract=["text", "phonemes"],
+        limit=None,
+    )
