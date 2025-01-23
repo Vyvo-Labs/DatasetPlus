@@ -1,16 +1,10 @@
-"""Core functionality for managing Hugging Face datasets.
-
-This module provides the HFDatasetManager class for downloading and managing
-datasets from the Hugging Face Hub.
-"""
-
 import shutil
 from pathlib import Path
 from typing import Optional, Union
 
 from huggingface_hub import HfApi, hf_hub_download, snapshot_download
 
-from .utils import get_logger
+from datasetplus.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -39,7 +33,7 @@ class HFDatasetManager:
         repo_type: str = "dataset",
         ignore_patterns: Optional[list[str]] = None,
         no_cache: bool = False,
-    ) -> None:
+    ) -> Path:
         """Download a dataset from Hugging Face Hub.
 
         Args:
@@ -49,43 +43,64 @@ class HFDatasetManager:
             repo_type: Type of repository ('dataset' or 'model')
             ignore_patterns: List of file patterns to ignore
             no_cache: If True, force download even if files exist in cache
+
+        Returns:
+            Path: Path to the downloaded dataset directory
         """
         try:
             local_dir = Path(local_dir)
             local_dir.mkdir(parents=True, exist_ok=True)
-            cache_dir = local_dir / ".cache"
 
-            logger.info(f"Downloading {repo_id} to {local_dir}")
+            # Varsayılan olarak yok sayılacak dosya ve dizinler
+            default_ignore = [
+                ".git*",
+                "README.md",
+                "*.md",
+                "LICENSE",
+                "__pycache__",
+                "*.pyc",
+                ".DS_Store"
+            ]
+            
+            # Kullanıcının belirttiği ignore_patterns'i de ekle
+            if ignore_patterns:
+                default_ignore.extend(ignore_patterns)
 
             if filename:
-                # Download single file
-                logger.info(f"Downloading file: {filename}")
-                hf_hub_download(
+                # Tek bir dosya indir
+                file_path = hf_hub_download(
                     repo_id=repo_id,
                     filename=filename,
                     repo_type=repo_type,
                     token=self.token,
-                    local_dir=str(local_dir),
+                    local_dir=local_dir,
+                    local_dir_use_symlinks=False,
                 )
-                logger.debug(f"Downloaded {filename}")
+                logger.info(f"Downloaded file: {file_path}")
+                return Path(file_path)
             else:
-                # Download entire repository
-                snapshot_download(
+                # Tüm repository'yi indir
+                dataset_path = snapshot_download(
                     repo_id=repo_id,
                     repo_type=repo_type,
-                    local_dir=str(local_dir),
                     token=self.token,
-                    ignore_patterns=ignore_patterns,
+                    local_dir=local_dir,
+                    ignore_patterns=default_ignore,
+                    local_dir_use_symlinks=False,
                 )
-                logger.info("Download complete")
+                
+                # .cache klasörünü sil
+                cache_dir = Path(local_dir) / ".cache"
+                if cache_dir.exists():
+                    logger.info(f"Removing cache directory: {cache_dir}")
+                    shutil.rmtree(cache_dir)
+                
+                logger.info(f"Downloaded dataset to: {dataset_path}")
+                return Path(dataset_path)
 
-            if no_cache and cache_dir.exists():
-                shutil.rmtree(cache_dir)
-                logger.debug(f"Removed cache directory: {cache_dir}")
-
-        except Exception as e:
-            logger.error(f"Failed to download {repo_id}: {str(e)}")
-            raise RuntimeError(f"Failed to download {repo_id}") from e
+        except Exception as err:
+            logger.error(f"Failed to download dataset: {err}")
+            raise RuntimeError("Failed to download dataset") from err
 
     def upload(
         self,
