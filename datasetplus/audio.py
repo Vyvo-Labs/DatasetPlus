@@ -41,30 +41,30 @@ class AudioProcessor:
                     parquet_files = list(self.parquet_path.glob("*.parquet"))
                     if not parquet_files:
                         raise ValueError(f"No parquet files found in {self.parquet_path}")
-                    
+
                     # Read and concatenate all parquet files
                     dfs = []
                     for file in parquet_files:
                         logger.info(f"Loading parquet file: {file}")
                         dfs.append(pl.read_parquet(file))
                     self._df = pl.concat(dfs)
-                    
+
             except Exception as err:
                 logger.error(f"Failed to read parquet file(s): {err}")
                 raise ValueError("Failed to read parquet file(s)") from err
         return self._df
 
     def extract_audio_files(
-        self, 
-        output_dir: Union[str, Path], 
+        self,
+        output_dir: Union[str, Path],
         columns_to_extract: Optional[list[str]] = None,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
     ) -> list[Path]:
         """Extract audio files and their corresponding text from the parquet file.
 
         Args:
             output_dir: Directory to save the extracted audio files and text files
-            columns_to_extract: List of column names to extract (besides 'audio'). 
+            columns_to_extract: List of column names to extract (besides 'audio').
                               If None, all non-audio columns will be extracted.
             limit: Maximum number of files to extract (None for all)
 
@@ -78,21 +78,22 @@ class AudioProcessor:
             output_dir = Path(output_dir)
             audio_dir = output_dir / "wavs"
             audio_dir.mkdir(parents=True, exist_ok=True)
-            
+
             df = self.df
             available_columns = set(df.columns)
             logger.info(f"Available columns in dataset: {available_columns}")
-            
+
             if columns_to_extract is None:
-                columns_to_extract = [col for col in available_columns 
-                                   if col != 'audio' and not col.startswith('__')]
+                columns_to_extract = [
+                    col for col in available_columns if col != "audio" and not col.startswith("__")
+                ]
             else:
                 invalid_columns = set(columns_to_extract) - available_columns
                 if invalid_columns:
                     raise ValueError(f"Column(s) not found in dataset: {invalid_columns}")
-            
+
             logger.info(f"Columns to extract: {columns_to_extract}")
-            
+
             column_dirs = {}
             for col in columns_to_extract:
                 col_dir = output_dir / col
@@ -112,23 +113,23 @@ class AudioProcessor:
 
             audio_files: list[Path] = []
             for row in progress:
-                audio_data = row.get('audio', {})
+                audio_data = row.get("audio", {})
                 if isinstance(audio_data, dict):
-                    audio_bytes = audio_data.get('bytes', b'')
+                    audio_bytes = audio_data.get("bytes", b"")
                 else:
                     audio_bytes = audio_data
 
-                filename = str(row.get('id', row.get('filename', len(audio_files))))
-                
+                filename = str(row.get("id", row.get("filename", len(audio_files))))
+
                 audio_path = audio_dir / f"{filename}.wav"
                 if isinstance(audio_bytes, bytes):
                     with open(audio_path, "wb") as f:
                         f.write(audio_bytes)
                     audio_files.append(audio_path)
                     logger.debug(f"Extracted audio: {audio_path}")
-                    
+
                     for col, col_dir in column_dirs.items():
-                        content = row.get(col, '')
+                        content = row.get(col, "")
                         if content:
                             file_path = col_dir / f"{filename}.txt"
                             with open(file_path, "w", encoding="utf-8") as f:
