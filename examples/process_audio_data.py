@@ -37,7 +37,7 @@ def process_audio_data(
         # Get metadata and print sample data
         metadata = processor.get_metadata()
         logger.info(f"Dataset metadata: {metadata}")
-        
+
         # Print column names and first row for debugging
         df = processor.df
         logger.info(f"Column names: {df.columns}")

@@ -59,9 +59,9 @@ class HFDatasetManager:
                 "LICENSE",
                 "__pycache__",
                 "*.pyc",
-                ".DS_Store"
+                ".DS_Store",
             ]
-            
+
             # Kullanıcının belirttiği ignore_patterns'i de ekle
             if ignore_patterns:
                 default_ignore.extend(ignore_patterns)
@@ -78,25 +78,24 @@ class HFDatasetManager:
                 )
                 logger.info(f"Downloaded file: {file_path}")
                 return Path(file_path)
-            else:
-                # Tüm repository'yi indir
-                dataset_path = snapshot_download(
-                    repo_id=repo_id,
-                    repo_type=repo_type,
-                    token=self.token,
-                    local_dir=local_dir,
-                    ignore_patterns=default_ignore,
-                    local_dir_use_symlinks=False,
-                )
-                
-                # .cache klasörünü sil
-                cache_dir = Path(local_dir) / ".cache"
-                if cache_dir.exists():
-                    logger.info(f"Removing cache directory: {cache_dir}")
-                    shutil.rmtree(cache_dir)
-                
-                logger.info(f"Downloaded dataset to: {dataset_path}")
-                return Path(dataset_path)
+            # Tüm repository'yi indir
+            dataset_path = snapshot_download(
+                repo_id=repo_id,
+                repo_type=repo_type,
+                token=self.token,
+                local_dir=local_dir,
+                ignore_patterns=default_ignore,
+                local_dir_use_symlinks=False,
+            )
+
+            # .cache klasörünü sil
+            cache_dir = Path(local_dir) / ".cache"
+            if cache_dir.exists():
+                logger.info(f"Removing cache directory: {cache_dir}")
+                shutil.rmtree(cache_dir)
+
+            logger.info(f"Downloaded dataset to: {dataset_path}")
+            return Path(dataset_path)
 
         except Exception as err:
             logger.error(f"Failed to download dataset: {err}")
