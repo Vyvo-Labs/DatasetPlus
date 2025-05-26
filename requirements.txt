@@ -1,0 +1,8 @@
+  numpy
+  torch
+  torchaudio
+  tqdm
+  submitit
+  huggingface_hub
+  rich
+  safetensors
