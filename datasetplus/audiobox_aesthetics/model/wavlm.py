@@ -100,7 +100,7 @@ class Swish(nn.Module):
 
     def __init__(self):
         """Construct an MultiHeadedAttention object."""
-        super(Swish, self).__init__()
+        super().__init__()
         self.act = torch.nn.Sigmoid()
 
     def forward(self, x):
@@ -109,7 +109,7 @@ class Swish(nn.Module):
 
 class GLU_Linear(nn.Module):
     def __init__(self, input_dim, output_dim, glu_type="sigmoid", bias_in_glu=True):
-        super(GLU_Linear, self).__init__()
+        super().__init__()
 
         self.glu_type = glu_type
         self.output_dim = output_dim
@@ -244,17 +244,17 @@ def quant_noise(module, p, block_size):
 
     # 2D matrix
     if not is_conv:
-        assert (
-            module.weight.size(1) % block_size == 0
-        ), "Input features must be a multiple of block sizes"
+        assert module.weight.size(1) % block_size == 0, (
+            "Input features must be a multiple of block sizes"
+        )
 
     # 4D matrix
     else:
         # 1x1 convolutions
         if module.kernel_size == (1, 1):
-            assert (
-                module.in_channels % block_size == 0
-            ), "Input channels must be a multiple of block sizes"
+            assert module.in_channels % block_size == 0, (
+                "Input channels must be a multiple of block sizes"
+            )
         # regular convolutions
         else:
             k = module.kernel_size[0] * module.kernel_size[1]
@@ -356,16 +356,16 @@ class MultiheadAttention(nn.Module):
         self.head_dim = embed_dim // num_heads
         self.q_head_dim = self.head_dim
         self.k_head_dim = self.head_dim
-        assert (
-            self.head_dim * num_heads == self.embed_dim
-        ), "embed_dim must be divisible by num_heads"
+        assert self.head_dim * num_heads == self.embed_dim, (
+            "embed_dim must be divisible by num_heads"
+        )
         self.scaling = self.head_dim**-0.5
 
         self.self_attention = self_attention
         self.encoder_decoder_attention = encoder_decoder_attention
 
         assert not self.self_attention or self.qkv_same_dim, (
-            "Self-attention requires query, key and " "value to be of the same size"
+            "Self-attention requires query, key and value to be of the same size"
         )
 
         k_bias = True
@@ -1255,9 +1255,9 @@ class ConvFeatureExtractionModel(nn.Module):
                 nn.init.kaiming_normal_(conv.weight)
                 return conv
 
-            assert (
-                is_layer_norm and is_group_norm
-            ) is False, "layer norm and group norm are exclusive"
+            assert (is_layer_norm and is_group_norm) is False, (
+                "layer norm and group norm are exclusive"
+            )
 
             if is_layer_norm:
                 return nn.Sequential(

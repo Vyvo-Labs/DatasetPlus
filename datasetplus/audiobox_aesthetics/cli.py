@@ -119,7 +119,7 @@ def app():
 if __name__ == "__main__":
     """
     Example usage:
-    
+
     Single node
     > python cli.py input.jsonl --batch-size 100 > output.jsonl
 
