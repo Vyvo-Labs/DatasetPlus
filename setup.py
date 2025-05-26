@@ -13,7 +13,9 @@ def get_library_name():
     current_dir = os.path.abspath(os.path.dirname(__file__))
     init_file = os.path.join(current_dir, "datasetplus", "__init__.py")
     with open(init_file, encoding="utf-8") as f:
-        return re.search(r'^__library_name__ = [\'\"]([^\'\"]*)[\'\"]', f.read(), re.M).group(1)
+        return re.search(
+            r"^__library_name__ = [\'\"]([^\'\"]*)[\'\"]", f.read(), re.M
+        ).group(1)
 
 
 INSTALL_REQUIRES = get_requirements("requirements.txt")
