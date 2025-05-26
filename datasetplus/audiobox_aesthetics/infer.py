@@ -232,8 +232,8 @@ def main_predict(input_file, ckpt, batch_size=10):
         output = predictor.forward(metadata[ii : ii + batch_size])
         # convert to json string
         outputs.extend([json.dumps(x) for x in output])
-    assert len(outputs) == len(
-        metadata
-    ), f"Output {len(outputs)} != input {len(metadata)} length"
+    assert len(outputs) == len(metadata), (
+        f"Output {len(outputs)} != input {len(metadata)} length"
+    )
 
     return outputs

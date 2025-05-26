@@ -18,6 +18,7 @@ DEFAULT_S3_URL = "https://dl.fbaipublicfiles.com/audiobox-aesthetics/checkpoint.
 
 logging = logging.getLogger(__name__)
 
+
 def download_file(url, destination):
     """Download a file from a URL with a progress bar."""
     try:
