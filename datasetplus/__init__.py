@@ -1,6 +1,6 @@
-"""Enhanced dataset management utilities for Hugging Face Hub."""
-
-from .audio import AudioProcessor
-from .core import HFDatasetManager
-
-__all__ = ["HFDatasetManager", "AudioProcessor"]
+__version__ = "0.0.1"
+__author__ = "Kadir Nar"
+__license__ = "Apache License 2.0"
+__url__ = "https://github.com/kadirnar/DatasetPlus"
+__summary__ = "DatasetPlus: Enhanced dataset management utilities for Hugging Face Hub."
+__library_name__ = "datasetplus"
