@@ -1,6 +1,6 @@
 <div align="center">
 <h2>
-    DatasetPlus: Enhanced Data Management and Preprocessing Tools for HF Datasets
+    DatasetPlus: Data Management and Preprocessing Tools for HF Datasets
 </h2>
 <img width="500" alt="teaser" src="assets/logo.png">
 </div>
