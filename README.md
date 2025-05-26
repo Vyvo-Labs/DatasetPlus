@@ -1,33 +1,49 @@
-# DatasetPlus
+<div align="center">
+<h2>
+    DatasetPlus: Enhanced dataset management utilities for the Hugging Face Hub.
+</h2>
+<img width="500" alt="teaser" src="assets/logo.png">
+</div>
 
-Enhanced dataset management utilities for the Hugging Face Hub.
-
-## Installation
+## 🛠️ Installation
 
 ```bash
+uv venv --python 3.12
+source .venv/bin/activate
 uv pip install -e .
 ```
 
-## Usage Examples
-
-### Download a Dataset
+## 🎙️ Usage
 
 ```python
-from datasetplus import Dataset
+from dataset import audiobox_aesthetics_score
 
-dataset = Dataset()
-dataset.download(
-    repo_id="fixie-ai/llama-questions",
-    local_dir="output/llama_questions",
-    repo_type="dataset",
+audiobox_aesthetics_score(
+    audio_path="path/to/audio/file.wav",
+    model_path="path/to/model",
+    output_path="path/to/output",
 )
 ```
 
-### Process Audio Data
+## 😍 Contributing
 
-```python
-from datasetplus import AudioProcessor
+```bash
+uv pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
 
-processor = AudioProcessor("path/to/audio/files")
-processor.process()
+## 📜 License
+
+This project is licensed under the terms of the Apache License 2.0.
+
+## 🤗 Citation
+
+```bibtex
+@article{tjandra2025aes,
+    title={Meta Audiobox Aesthetics: Unified Automatic Quality Assessment for Speech, Music, and Sound},
+    author={Andros Tjandra and Yi-Chiao Wu and Baishan Guo and John Hoffman and Brian Ellis and Apoorv Vyas and Bowen Shi and Sanyuan Chen and Matt Le and Nick Zacharov and Carleigh Wood and Ann Lee and Wei-Ning Hsu},
+    year={2025},
+    url={https://arxiv.org/abs/2502.05139}
+}
 ```
