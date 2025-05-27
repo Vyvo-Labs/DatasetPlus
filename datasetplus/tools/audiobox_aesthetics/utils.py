@@ -16,7 +16,7 @@ DEFAULT_HF_REPO = "facebook/audiobox-aesthetics"
 DEFAULT_CKPT_FNAME = "checkpoint.pt"
 DEFAULT_S3_URL = "https://dl.fbaipublicfiles.com/audiobox-aesthetics/checkpoint.pt"
 
-logging = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def download_file(url, destination):
@@ -42,9 +42,9 @@ def download_file(url, destination):
                         f.write(chunk)
                         # Update the progress bar
                         pbar.update(len(chunk))
-        logging.info(f"File has been downloaded and saved to '{destination}'.")
+        logger.info(f"File has been downloaded and saved to '{destination}'.")
     except requests.exceptions.RequestException as e:
-        logging.error(f"An error occurred while downloading the file: {e}")
+        logger.error(f"An error occurred while downloading the file: {e}")
 
 
 def load_model(checkpoint_pth: Optional[str]) -> str:
@@ -64,5 +64,5 @@ def load_model(checkpoint_pth: Optional[str]) -> str:
         cached_file = huggingface_hub.hf_hub_download(
             DEFAULT_HF_REPO, DEFAULT_CKPT_FNAME
         )
-        logging.info(f"Load ckpt from {cached_file}")
+        logger.info(f"Load ckpt from {cached_file}")
         return cached_file

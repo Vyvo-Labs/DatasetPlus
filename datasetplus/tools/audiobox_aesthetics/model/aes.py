@@ -6,15 +6,15 @@
 
 from dataclasses import dataclass
 import logging
-from typing import Dict
+from typing import Dict, Optional
 from torch import nn
 import torch
 
-from .utils import create_mlp_block
-from .wavlm import WavLM, WavLMConfig
+from datasetplus.tools.audiobox_aesthetics.utils import create_mlp_block
+from datasetplus.tools.audiobox_aesthetics.model.wavlm import WavLM, WavLMConfig
 from huggingface_hub import PyTorchModelHubMixin
 
-logging = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_AUDIO_CFG = WavLMConfig(
@@ -74,13 +74,11 @@ AXES_NAME = ["CE", "CU", "PC", "PQ"]
 
 
 @dataclass(eq=False)
-class AesMultiOutput(
-    nn.Module,
-    PyTorchModelHubMixin,
-    repo_url="https://github.com/facebookresearch/audiobox-aesthetics",
-    pipeline_tag="audio-classification",
-    license="cc-by-4.0",
-):
+class AesMultiOutput(nn.Module, PyTorchModelHubMixin):
+    # Class attributes for HuggingFace Hub
+    _repo_url = "https://github.com/facebookresearch/audiobox-aesthetics"
+    _pipeline_tag = "audio-classification"
+    _license = "cc-by-4.0"
     proj_num_layer: int = 1
     proj_ln: bool = False
     proj_act_fn: str = "gelu"
@@ -90,7 +88,7 @@ class AesMultiOutput(
     precision: str = "32"
     normalize_embed: bool = True
     output_dim: int = 1
-    target_transform: Dict[str, Dict[str, float]] = None
+    target_transform: Optional[Dict[str, Dict[str, float]]] = None
     freeze_encoder: bool = True  # trf encoder freeze true means no weight update
 
     def __post_init__(self):

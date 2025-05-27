@@ -14,9 +14,8 @@ import torch
 import torchaudio
 import torch.nn.functional as F
 
-from .utils import load_model
-
-from .model.aes import AesMultiOutput, Normalize
+from datasetplus.tools.audiobox_aesthetics.utils import load_model
+from datasetplus.tools.audiobox_aesthetics.model.aes import AesMultiOutput, Normalize
 
 # Create module-level logger instead of configuring root logger
 logger = logging.getLogger(__name__)
@@ -218,7 +217,7 @@ def initialize_predictor(ckpt=None):
     return model_predictor
 
 
-def main_predict(input_file, ckpt, batch_size=10):
+def main_predict(input_file, ckpt, batch_size=10) -> List[Dict[str, Any]]:
     predictor = initialize_predictor(ckpt)
 
     # load file
@@ -236,4 +235,5 @@ def main_predict(input_file, ckpt, batch_size=10):
         f"Output {len(outputs)} != input {len(metadata)} length"
     )
 
-    return outputs
+    # Convert string outputs to dictionaries to match return type
+    return [json.loads(output) for output in outputs]
