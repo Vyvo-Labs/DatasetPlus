@@ -10,7 +10,7 @@ from typing import Dict, Optional
 from torch import nn
 import torch
 
-from datasetplus.tools.audiobox_aesthetics.utils import create_mlp_block
+from datasetplus.tools.audiobox_aesthetics.model.utils import create_mlp_block
 from datasetplus.tools.audiobox_aesthetics.model.wavlm import WavLM, WavLMConfig
 from huggingface_hub import PyTorchModelHubMixin
 
