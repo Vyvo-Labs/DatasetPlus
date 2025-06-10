@@ -212,8 +212,8 @@ def load_dataset(path, start=None, end=None) -> List[Batch]:
     return metadata
 
 
-def initialize_predictor(ckpt=None):
-    model_predictor = AesPredictor(checkpoint_pth=ckpt, data_col="path")
+def initialize_predictor(checkpoint_pth=None):
+    model_predictor = AesPredictor(checkpoint_pth=checkpoint_pth, data_col="path")
     return model_predictor
 
 
