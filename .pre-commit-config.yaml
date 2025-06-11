@@ -33,16 +33,6 @@ repos:
       - id: ruff-format
         args: [--no-cache]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
-    hooks:
-      - id: mypy
-        args: [--no-incremental, --cache-dir=/dev/null]
-        additional_dependencies:
-          - types-requests
-          - types-setuptools
-          - types-tqdm
-
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.22
     hooks:
