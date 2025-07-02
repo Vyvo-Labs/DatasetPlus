@@ -1,15 +1,173 @@
 """
-Simple utility function for downloading audio files from Hugging Face datasets.
-Loads a dataset and downloads the audio files in WAV format.
+Utility functions for working with Hugging Face datasets.
+Includes functions for downloading audio files and specific datasets like Emilia.
 """
 
 import os
 from typing import List, Optional
 from tqdm.auto import tqdm
 import soundfile as sf
-
-# Import datasets library
 from datasets import load_dataset, Audio
+
+
+def download_hf(
+    repo_id="kadirnar/test",
+    repo_type="model",
+    ignore_patterns=["*.md", "*..gitattributes"],
+    local_dir=None,
+    allow_patterns=None,
+):
+    """
+    Downloads a model from Hugging Face Hub.
+
+    Args:
+        repo_id (str): The repository ID on Hugging Face Hub.
+        repo_type (str): Type of repository ('model', 'dataset', etc.).
+        ignore_patterns (list): Patterns to ignore during download.
+        local_dir (str): Local directory to save the model. Defaults to repo_id's last component.
+        allow_patterns (str): Patterns to allow during download.
+
+    Returns:
+        str: Path to the downloaded model.
+    """
+    from huggingface_hub import snapshot_download
+
+    if local_dir is None:
+        local_dir = repo_id.split("/")[-1]
+
+    return snapshot_download(
+        repo_id=repo_id,
+        repo_type=repo_type,
+        ignore_patterns=ignore_patterns,
+        local_dir=local_dir,
+        allow_patterns=allow_patterns,
+    )
+
+
+def upload_to_hub(
+    local_dir,
+    repo_id,
+    repo_type="model",
+    commit_message=None,
+    private=False,
+    token=None,
+    create_repo=True,
+    ignore_patterns=None,
+):
+    """
+    Uploads local content to Hugging Face Hub.
+
+    Args:
+        local_dir (str): Path to the local directory to upload.
+        repo_id (str): The repository ID on Hugging Face Hub.
+        repo_type (str): Type of repository ('model', 'dataset', etc.).
+        commit_message (str): Commit message for the upload. Defaults to 'Upload {repo_type}'.
+        private (bool): Whether the repository should be private.
+        token (str): HuggingFace token. Will use the cached token if not provided.
+        create_repo (bool): Whether to create the repository if it doesn't exist.
+        ignore_patterns (list): Patterns to ignore during upload.
+
+    Returns:
+        str: URL of the repository on Hugging Face Hub.
+    """
+    from huggingface_hub import HfApi
+
+    if commit_message is None:
+        commit_message = f"Upload {repo_type}"
+
+    if ignore_patterns is None:
+        ignore_patterns = [".git/**", ".gitignore", "**/.DS_Store", "**/__pycache__/**"]
+
+    api = HfApi(token=token)
+
+    # Create repository if needed
+    if create_repo:
+        api.create_repo(
+            repo_id=repo_id, repo_type=repo_type, private=private, exist_ok=True
+        )
+
+    # Upload directory content to the Hub
+    url = api.upload_folder(
+        folder_path=local_dir,
+        repo_id=repo_id,
+        repo_type=repo_type,
+        commit_message=commit_message,
+        ignore_patterns=ignore_patterns,
+    )
+
+    return url
+
+
+def upload_large_files_to_hub(
+    file_paths,
+    repo_id,
+    repo_type="model",
+    path_in_repo=None,
+    commit_message=None,
+    private=False,
+    token=None,
+    create_repo=True,
+    max_shard_size="500MB",
+):
+    """
+    Uploads large files to Hugging Face Hub with chunking support.
+
+    Args:
+        file_paths (str or list): Path(s) to the large file(s) to upload.
+        repo_id (str): The repository ID on Hugging Face Hub.
+        repo_type (str): Type of repository ('model', 'dataset', etc.).
+        path_in_repo (str): Path in the repository where the file(s) should be stored.
+                           If None, files will be stored at the root.
+        commit_message (str): Commit message for the upload. Defaults to 'Upload large files'.
+        private (bool): Whether the repository should be private.
+        token (str): HuggingFace token. Will use the cached token if not provided.
+        create_repo (bool): Whether to create the repository if it doesn't exist.
+        max_shard_size (str): Maximum size for the chunks in bytes (e.g. "500MB", "1GB").
+
+    Returns:
+        str: URL of the repository on Hugging Face Hub.
+    """
+    import os
+    from huggingface_hub import HfApi, upload_file
+
+    if commit_message is None:
+        commit_message = "Upload large files"
+
+    if isinstance(file_paths, str):
+        file_paths = [file_paths]
+
+    api = HfApi(token=token)
+
+    # Create repository if needed
+    if create_repo:
+        api.create_repo(
+            repo_id=repo_id, repo_type=repo_type, private=private, exist_ok=True
+        )
+
+    uploaded_files = []
+
+    for file_path in file_paths:
+        file_name = os.path.basename(file_path)
+        destination_path = (
+            file_name if path_in_repo is None else os.path.join(path_in_repo, file_name)
+        )
+
+        # Upload large file with potential chunking
+        url = upload_file(
+            path_or_fileobj=file_path,
+            path_in_repo=destination_path,
+            repo_id=repo_id,
+            repo_type=repo_type,
+            token=token,
+            commit_message=f"{commit_message}: {file_name}",
+            max_shard_size=max_shard_size,
+        )
+
+        uploaded_files.append(url)
+
+    # Return the repository URL (common to all files)
+    repo_url = f"https://huggingface.co/{repo_id}"
+    return repo_url
 
 
 def download_audio_files(
